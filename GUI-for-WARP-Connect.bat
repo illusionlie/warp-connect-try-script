@@ -214,7 +214,9 @@ echo._log=false
 echo._warpmode=warp
 echo._renewnum=3
 echo._proxydetect=true
-echo._nosleep=true
+echo._nosleep=false
+::notice is still in test
+echo._notice=true
 )
 goto :eof
 
@@ -278,9 +280,11 @@ move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 :WCS-try-2
 if /i !_fail! GEQ !_check! goto :WCS-try-3
 if /i !_loopnum! GEQ 80 goto :WCS-try-3
-if /i !_pha3! GEQ !_renewnum! goto :WCS-try-4
+if /i !_pha3! GEQ !_renewnum! (
+	mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-try",,"",0^)(window.close^)&&exit
+)
 warp-cli status|findstr /C:"happy eyeballs" &&set /a "_fail+=1"&&timeout /t 5 /NOBREAK >nul
-warp-cli status|findstr /C:" Connected" &&exit
+warp-cli status|findstr /C:" Connected" &&goto :WCS-try-4
 set /a "_loopnum+=1"
 timeout /t !_loop! /NOBREAK >nul
 goto :WCS-try-2
@@ -299,7 +303,19 @@ timeout /t !_loop! /NOBREAK >nul
 warp-cli connect
 goto :WCS-try-2
 :WCS-try-4
-mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,"",0)(window.close)&&exit
+if "!_notice!"=="true" (
+	for /f "tokens=2 delims= " %%a in ('dotnet --info ^| findstr /i /C:"Microsoft.NETCore.App"') do (
+		set "_version=%%a"
+		if /i "!_netcore!" leq "!_version!" set "_netcore=!_version!"
+	)
+	set "_version="
+	for /f "tokens=2 delims= " %%a in ('dotnet --info ^| findstr /i /C:"Microsoft.WindowsDesktop.App"') do (
+		set "_version=%%a"
+		if "!_netdesk!" leq "!_version!" set "_netdesk=!_version!"
+	)
+	if NOT defined _netcore if NOT defined _netdesk exit
+	powershell -NoProfile -NonInteractive -Command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');$objNotify = New-Object System.Windows.Forms.NotifyIcon;$objNotify.Icon = [System.Drawing.SystemIcons]::Information;$objNotify.BalloonTipText = '连接成功！脚本已退出';$objNotify.BalloonTipTitle = 'WARP-Connect-Script';$objNotify.Visible = $true;$objNotify.ShowBalloonTip(8000)" >nul
+)
 exit
 
 
