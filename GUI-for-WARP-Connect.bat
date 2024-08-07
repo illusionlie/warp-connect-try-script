@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v0.2.0-20240806
+:: GUI-for-WARP-Connect-Script v0.3.0-20240807
 :top
 endlocal
-set "warpcs-ver=v0.2.0"
-set "warpcs-date=20240806"
+set "warpcs-ver=v0.3.0"
+set "warpcs-date=20240807"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
@@ -213,18 +213,22 @@ echo._log=false
 echo._warpmode=warp
 echo._renewnum=3
 echo._proxydetect=true
+echo._nosleep=true
 )
 goto :eof
 
 
 :WCS-daemon
-title WCS-Daemon-v0.2.0
+title WCS-Daemon-v0.3.0
 :WCS-daemon-1
 cls
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
 tasklist /FI "PID eq !_mepid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||goto :menu-exit
-if NOT "!_trstatus!"=="exited" (tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal)
+if NOT "!_trstatus!"=="exited" (
+	tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal
+	if "!_nosleep!"=="true" mshta vbscript:CreateObject("WScript.Shell").SendKeys("{SCROLLLOCK 2}")(window.close)
+)
 timeout /t 1 /NOBREAK >nul
 goto :WCS-daemon-1
 :menu-exit
