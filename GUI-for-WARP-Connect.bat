@@ -22,20 +22,20 @@ for %%i in (v4 v6) do (
 		call :ErrorWarn "»±…Ÿ IP%%i  ˝æ› ips-%%i.txt-ºÏ≤ÈÕ¯¬Á¡¨Ω”" DownloadFailed &pause>nul&exit
 	)
 )
-if "%~1"=="WSC-daemon" (goto :WSC-daemon)
-if "%~1"=="WSC-try" (goto :WSC-try)
+if "%~1"=="WCS-daemon" (goto :WCS-daemon)
+if "%~1"=="WCS-try" (goto :WCS-try)
 call :ResetALL
 call :bootcheck
 fltmc>nul 2>nul||mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0",,,"runas",1)(window.close)&&exit
 fltmc>nul 2>nul||(call :ErrorWarn "Ã·»® ß∞‹, –Ë“™π‹¿Ì‘±»®œﬁ-–Ë“™Ã·»®" BootCheck &pause>nul&exit)
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_mepid=%%a") & del /f "%%~ft"
-(for /f "usebackq delims=" %%a in ("!_temp!\WSC-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mepid (echo._mepid=%_mepid%) else echo.%%a)))> "!_temp!\WSC-Pid.file.tmp"
-move /y "!_temp!\WSC-Pid.file.tmp" "!_temp!\WSC-Pid.file" >nul 2>nul
-(for /f "usebackq delims=" %%a in ("!_temp!\WSC-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mestatus (echo._mestatus=running) else echo.%%a)))> "!_temp!\WSC-Signal.file.tmp"
-move /y "!_temp!\WSC-Signal.file.tmp" "!_temp!\WSC-Signal.file" >nul 2>nul
-start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WSC-try",,"",0)(window.close)
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mepid (echo._mepid=%_mepid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
+move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mestatus (echo._mestatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-try",,"",0)(window.close)
 timeout /t 1 /NOBREAK >nul
-start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WSC-daemon",,"",0)(window.close)
+start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-daemon",,"",0)(window.close)
 set /p=<nul
 :main
 cls
@@ -187,11 +187,11 @@ if "!_proxydetect!"=="true" (
 		)
 	if "!_ifproxy!"=="true" (call :ErrorWarn "ƒ„À∆∫ı’˝‘⁄ π”√¥˙¿Ì∑˛ŒÒ∆˜-«Â¿Ì¥˙¿Ì" BootCheck &pause>nul&exit)
 )
->"!_temp!\WSC-Pid.file" (
+>"!_temp!\WCS-Pid.file" (
 echo._mepid=1
 echo._trpid=1
 )
->"!_temp!\WSC-Signal.file" (
+>"!_temp!\WCS-Signal.file" (
 echo._mestatus=undefined
 echo._trstatus=undefined
 )
@@ -216,45 +216,45 @@ echo._proxydetect=true
 )
 goto :eof
 
-:WSC-daemon
+:WCS-daemon
 cls
 title WCS-Daemon-v0.1.0
-:WSC-daemon-1
+:WCS-daemon-1
 cls
-for /f "usebackq" %%a in ("!_temp!\WSC-Pid.file") do (set "%%a")
+for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 tasklist /FI "PID eq !_mepid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||goto :menu-exit
 tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal
 timeout /t 1 /NOBREAK >nul
-goto :WSC-daemon-1
+goto :WCS-daemon-1
 :menu-exit
-for /f "usebackq" %%a in ("!_temp!\WSC-Pid.file") do (set "%%a")
+for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 for %%a in (!_mepid! !_trpid!) do (taskkill /f /t /pid %%a >nul 2>nul)
-del /f /q "!_temp!\WSC-*.file"
+del /f /q "!_temp!\WCS-*.file"
 netsh AdvFirewall Set AllProfiles State On
 exit
 :try-exit-signal
-(for /f "usebackq delims=" %%a in ("!_temp!\WSC-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WSC-Signal.file.tmp"
-move /y "!_temp!\WSC-Signal.file.tmp" "!_temp!\WSC-Signal.file" >nul 2>nul
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 goto :eof
 
 
-:WSC-try
+:WCS-try
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_trpid=%%a") & del /f "%%~ft"
-(for /f "usebackq delims=" %%a in ("!_temp!\WSC-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trpid (echo._trpid=%_trpid%) else echo.%%a)))> "!_temp!\WSC-Pid.file.tmp"
-move /y "!_temp!\WSC-Pid.file.tmp" "!_temp!\WSC-Pid.file" >nul 2>nul
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trpid (echo._trpid=%_trpid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
+move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
 cls
 title WCS-Main-v0.1.0
 netsh AdvFirewall Set AllProfiles State Off
 warp-cli disconnect
 warp-cli mode !_warpmode!
-(for /f "usebackq delims=" %%a in ("!_temp!\WSC-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=renew) else echo.%%a)))> "!_temp!\WSC-Signal.file.tmp"
-move /y "!_temp!\WSC-Signal.file.tmp" "!_temp!\WSC-Signal.file" >nul 2>nul
-:WSC-try-1
-if NOT !_num! GEQ 100 (call :build!_ipver!ip :WSC-try-1)
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=renew) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+:WCS-try-1
+if NOT !_num! GEQ 100 (call :build!_ipver!ip :WCS-try-1)
 call :ResetALL
 call :testip
-if NOT exist ".\!_ipver!result.txt" (goto :WSC-try-1)
+if NOT exist ".\!_ipver!result.txt" (goto :WCS-try-1)
 set /p _endpoint=<.\!_ipver!result.txt
 warp-cli tunnel endpoint reset
 warp-cli tunnel endpoint set !_endpoint!
@@ -264,18 +264,18 @@ set "_fail=0"
 set "_loopnum=0"
 set "_pha3=0"
 warp-cli connect
-(for /f "usebackq delims=" %%a in ("!_temp!\WSC-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=running) else echo.%%a)))> "!_temp!\WSC-Signal.file.tmp"
-move /y "!_temp!\WSC-Signal.file.tmp" "!_temp!\WSC-Signal.file" >nul 2>nul
-:WSC-try-2
-if /i !_fail! GEQ !_check! goto :WSC-try-3
-if /i !_loopnum! GEQ 80 goto :WSC-try-3
-if /i !_pha3! GEQ !_renewnum! goto :WSC-try-4
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+:WCS-try-2
+if /i !_fail! GEQ !_check! goto :WCS-try-3
+if /i !_loopnum! GEQ 80 goto :WCS-try-3
+if /i !_pha3! GEQ !_renewnum! goto :WCS-try-4
 warp-cli status|findstr /C:"happy eyeballs" &&set /a "_fail+=1"&&timeout /t 5 /NOBREAK >nul
 warp-cli status|findstr /C:" Connected" &&exit
 set /a "_loopnum+=1"
 timeout /t !_loop! /NOBREAK >nul
-goto :WSC-try-2
-:WSC-try-3
+goto :WCS-try-2
+:WCS-try-3
 if /i !_fail! GEQ !_check! (
 	warp-cli disconnect
 	warp-cli tunnel rotate-keys
@@ -288,16 +288,16 @@ if /i !_loopnum! GEQ 80 (
 set /a "_pha3+=1"
 timeout /t !_loop! /NOBREAK >nul
 warp-cli connect
-goto :WSC-try-2
-:WSC-try-4
-mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WSC-try",,"",0)(window.close)&&exit
+goto :WCS-try-2
+:WCS-try-4
+mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-try",,"",0)(window.close)&&exit
 exit
 
 :maincheck
 warp-cli status|findstr /c:" Disconnected.">nul&&set "_warpstatus=[91m∂œø™¡¨Ω”[30m"
 warp-cli status|findstr /c:" Connecting">nul&&set "_warpstatus=[94m’˝‘⁄¡¨Ω”[30m"
 warp-cli status|findstr /c:" Connected">nul&&set "_warpstatus=[92m“—æ≠¡¨Ω”[30m"
-for /f "usebackq" %%a in ("!_temp!\WSC-Signal.file") do (set "%%a")
+for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
 if "!_trstatus!"=="running" (
 	set "_trstatus=[92m’˝‘⁄‘À––[30m"
 ) else (
