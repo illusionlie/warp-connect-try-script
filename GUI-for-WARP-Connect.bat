@@ -198,7 +198,6 @@ echo._trstatus=undefined
 )
 goto :eof
 
-
 :resetsettings
 echo.[[91mERROR[30m]-ResetSettings ÅäÖÃÎÄ¼þÒì³£»ò²»´æÔÚ, ÕýÔÚ´´½¨Ä¬ÈÏÅäÖÃ...
 echo.[[94mINFO[30m]-ResetSettings ¾ÉÅäÖÃÎÄ¼þÒÑ±»±¸·Ý
@@ -217,14 +216,15 @@ echo._proxydetect=true
 )
 goto :eof
 
+
 :WCS-daemon
-cls
-title WCS-Daemon-v0.1.0
+title WCS-Daemon-v0.1.1
 :WCS-daemon-1
 cls
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
+for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
 tasklist /FI "PID eq !_mepid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||goto :menu-exit
-tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal
+if NOT "!_trstatus!"=="exited" (tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal)
 timeout /t 1 /NOBREAK >nul
 goto :WCS-daemon-1
 :menu-exit
@@ -245,7 +245,7 @@ for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "n
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trpid (echo._trpid=%_trpid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
 move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
 cls
-title WCS-Main-v0.1.0
+title WCS-Main-v0.2.0
 netsh AdvFirewall Set AllProfiles State Off
 warp-cli disconnect
 warp-cli mode !_warpmode!
@@ -293,6 +293,7 @@ goto :WCS-try-2
 :WCS-try-4
 mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-try",,"",0)(window.close)&&exit
 exit
+
 
 :maincheck
 warp-cli status|findstr /c:" Disconnected.">nul&&set "_warpstatus=[91m¶Ï¿ªÁ¬½Ó[30m"
