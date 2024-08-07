@@ -32,9 +32,11 @@ for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "n
 move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mestatus (echo._mestatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
-start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-try",,"",0)(window.close)
+start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,,0)(window.close)
 timeout /t 1 /NOBREAK >nul
-if "!_daemon!"=="true" start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-daemon",,"",0)(window.close)
+if "!_daemon!"=="true" (
+	mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-daemon",,,0^)(window.close^)
+)
 set /p=<nul
 :main
 cls
@@ -226,7 +228,9 @@ for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
 tasklist /FI "PID eq !_mepid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||goto :menu-exit
 if NOT "!_trstatus!"=="exited" (
 	tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal
-	if "!_nosleep!"=="true" mshta vbscript:CreateObject("WScript.Shell").SendKeys("{SCROLLLOCK 2}")(window.close)
+	if "!_nosleep!"=="true" (
+		start mshta vbscript:CreateObject("WScript.Shell"^).SendKeys("{SCROLLLOCK 2}"^)(window.close^)
+	)
 )
 timeout /t 1 /NOBREAK >nul
 goto :WCS-daemon-1
@@ -295,7 +299,7 @@ timeout /t !_loop! /NOBREAK >nul
 warp-cli connect
 goto :WCS-try-2
 :WCS-try-4
-mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-try",,"",0)(window.close)&&exit
+mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,"",0)(window.close)&&exit
 exit
 
 
