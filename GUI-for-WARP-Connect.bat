@@ -185,6 +185,7 @@ if "!_proxydetect!"=="true" (
 		for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyServer') do (set "_proxyserver=%%a")
 		if "!_proxyserver:~0,9!"=="127.0.0.1" (set "_ifproxy=true")
 		)
+	sc query wintun|findstr /c:"STATE"|findstr /c:"RUNNING">nul&&set "_ifproxy=true"
 	if "!_ifproxy!"=="true" (call :ErrorWarn "你似乎正在使用代理服务器-清理代理" BootCheck &pause>nul&exit)
 )
 >"!_temp!\WCS-Pid.file" (
