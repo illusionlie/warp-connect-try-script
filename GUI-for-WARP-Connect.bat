@@ -218,7 +218,7 @@ goto :eof
 
 
 :WCS-daemon
-title WCS-Daemon-v0.1.1
+title WCS-Daemon-v0.2.0
 :WCS-daemon-1
 cls
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
@@ -231,6 +231,7 @@ goto :WCS-daemon-1
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 for %%a in (!_mepid! !_trpid!) do (taskkill /f /t /pid %%a >nul 2>nul)
 del /f /q "!_temp!\WCS-*.file"
+warp-cli status|findstr /c:" Connecting">nul&&warp-cli disconnect
 netsh AdvFirewall Set AllProfiles State On
 exit
 :try-exit-signal
