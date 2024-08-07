@@ -7,7 +7,6 @@ set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
 set "_settings=%_temp%\settings.ini"
-set "_daemonfile=%_temp%\WCS-Daemon.bat"
 if NOT exist ".\warp.exe" (
 	powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/warp.exe" -OutFile "warp.exe"
 )
@@ -35,7 +34,7 @@ move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-try",,"",0)(window.close)
 timeout /t 1 /NOBREAK >nul
-start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-daemon",,"",0)(window.close)
+if "!_daemon!"=="true" start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0","WCS-daemon",,"",0)(window.close)
 set /p=<nul
 :main
 cls
