@@ -256,7 +256,7 @@ cls
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
 tasklist /FI "PID eq !_mepid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||goto :menu-exit
-if NOT "!_trstatus!"=="exited" (
+if NOT "!_trstatus!"=="exited" if NOT "!_trstatus!"=="error" (
 	tasklist /FI "PID eq !_trpid!" /FI "IMAGENAME eq cmd.exe"|findstr /c:"cmd.exe"||call :try-exit-signal
 	if "!_nosleep!"=="true" (
 		start mshta vbscript:CreateObject("WScript.Shell"^).SendKeys("{SCROLLLOCK 2}"^)(window.close^)
@@ -274,8 +274,12 @@ netsh AdvFirewall Set AllProfiles State On
 exit
 :try-exit-signal
 call :logger INFO WCS-daemon "检测到Try进程退出"
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
+if NOT "!_trstatus!"=="exited" (
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=error) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :logger ERROR Try-exit-signal "Try进程异常退出"
+)
 goto :eof
 
 
@@ -358,6 +362,11 @@ if "!_notice!"=="true" (
 	if NOT defined _netcore if NOT defined _netdesk exit
 	powershell -NoProfile -NonInteractive -Command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');$objNotify = New-Object System.Windows.Forms.NotifyIcon;$objNotify.Icon = [System.Drawing.SystemIcons]::Information;$objNotify.BalloonTipText = '连接成功！脚本已退出';$objNotify.BalloonTipTitle = 'WARP-Connect-Script';$objNotify.Visible = $true;$objNotify.ShowBalloonTip(8000)" >nul
 )
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+set "_trstatus=exited"
+move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :logger DEBUG WCS-try-4 "WCS-try Signal: !_trstatus!"
+call :logger INFO WCS-try-4 "WCS-try已自行退出"
 exit
 
 
