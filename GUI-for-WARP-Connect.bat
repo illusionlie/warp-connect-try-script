@@ -1,41 +1,33 @@
-:: GUI-for-WARP-Connect-Script v0.3.0-20240807
+:: GUI-for-WARP-Connect-Script v0.4.0-20240808
 :top
 endlocal
-set "warpcs-ver=v0.3.0"
-set "warpcs-date=20240807"
+set "warpcs-ver=v0.4.0"
+set "warpcs-date=20240808"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
 set "_settings=%_temp%\settings.ini"
-if NOT exist ".\warp.exe" (
-	powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/warp.exe" -OutFile "warp.exe"
-)
-if NOT exist ".\warp.exe" (
-	call :ErrorWarn "warp.exe²»´æÔÚ, ²¢ÇÒÏÂÔØÊ§°Ü-¼ì²éÍøÂçÁ¬½Ó" DownloadFailed &pause>nul&exit
-)
-for %%i in (v4 v6) do (
-    if NOT exist ".\ips-%%i.txt" (
-		powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt" -OutFile "ips-%%i.txt"
-	)
-    if NOT exist ".\ips-%%i.txt" (
-		call :ErrorWarn "È±ÉÙ IP%%i Êý¾Ý ips-%%i.txt-¼ì²éÍøÂçÁ¬½Ó" DownloadFailed &pause>nul&exit
-	)
-)
+set "_logfile=%_temp%\latest.log"
 if "%~1"=="WCS-daemon" (goto :WCS-daemon)
 if "%~1"=="WCS-try" (goto :WCS-try)
 call :ResetALL
 call :bootcheck
 fltmc>nul 2>nul||mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0",,,"runas",1)(window.close)&&exit
 fltmc>nul 2>nul||(call :ErrorWarn "ÌáÈ¨Ê§°Ü, ÐèÒª¹ÜÀíÔ±È¨ÏÞ-ÐèÒªÌáÈ¨" BootCheck &pause>nul&exit)
+call :logger DEBUG Menu "ÒÑ³É¹¦ÌáÈ¨"
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_mepid=%%a") & del /f "%%~ft"
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mepid (echo._mepid=%_mepid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
 move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
+call :logger DEBUG Menu "Menu Pid: !_mepid!"
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mestatus (echo._mestatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :logger DEBUG Menu "Menu Signal: !_mestatus!"
 start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,,0)(window.close)
+call :logger DEBUG Menu "ÒÑÆô¶¯WCS-try"
 timeout /t 1 /NOBREAK >nul
 if "!_daemon!"=="true" (
 	mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-daemon",,,0^)(window.close^)
+	call :logger DEBUG Menu "ÒÑÆô¶¯WCS-daemon"
 )
 set /p=<nul
 :main
@@ -120,6 +112,7 @@ goto :eof
 
 :ErrorWarn
 echo.[[91mERROR[30m]-%2 %1
+call :logger ERROR %2 %1
 (echo =-?-=-?-=-?-= &echo %1)|msg %username% /time:3
 goto :eof
 
@@ -131,14 +124,28 @@ del /q ".\*fine.txt" >nul 2>nul
 goto :eof
 
 :bootcheck
+if NOT exist "!_temp!" (md "!_temp!" 2>nul >nul)
+(
+echo.#WARP-Connect-Script-LogFile
+echo.½Å±¾Æô¶¯ÓÚ: !date!_!time:~0,8!
+echo.½Å±¾ÔËÐÐÂ·¾¶: %~dp0
+)>"!_logfile!"
 echo.!cd!|findstr /I "%% ^! ^^ ^| ^& ^' ^) ^("&&(call :ErrorWarn "ÎÄ¼þ¼ÐÂ·¾¶°üº¬·Ç·¨×Ö·û-ÐÞ¸ÄÂ·¾¶" BootCheck &pause>nul&exit)
+call :logger DEBUG Bootcheck "ÒÑÍ¨¹ýÎÄ¼þ¼ÐÂ·¾¶²âÊÔ"
 for /f "tokens=2 delims==" %%i in ('wmic os get version /value') do (set "_winver=%%i")
 if !_winver! LSS 10.0 (call :ErrorWarn "ÄãµÄWindowsÏµÍ³°æ±¾µÍÓÚWin10-Éý¼¶Windows°æ±¾" BootCheck &pause>nul&exit)
+call :logger DEBUG Bootcheck "ÒÑÍ¨¹ýÏµÍ³°æ±¾²âÊÔ"
 warp-cli -V 2>nul >nul||(call :ErrorWarn "Î´ÕÒµ½warp-cli»òÎÞ·¨ÔËÐÐ-¼ì²éwarp°²×°Ä¿Â¼" BootCheck &pause>nul&exit)
+call :logger DEBUG Bootcheck "ÒÑÍ¨¹ýwarp-cli´æÔÚ²âÊÔ"
 warp-cli settings list|findstr /C:"(user set)"|findstr "Organization">nul 2>nul&&(call :ErrorWarn "ÄãÕýÔÚÊ¹ÓÃZero Trust-ÍË³öZero Trust" BootCheck &pause>nul&exit)
-if NOT exist "!_temp!" (md "!_temp!" 2>nul >nul)
+call :logger DEBUG Bootcheck "ÒÑÍ¨¹ýZero Trust²âÊÔ"
 2>nul >nul findstr /B /X "#WARP-Connect-Script-SettingsFile" "!_settings!"||call :resetsettings
+call :logger DEBUG Bootcheck "ÅäÖÃÎÄ¼þÍ·Õý³£"
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
+call :logger INFO Bootcheck "ÅäÖÃÒÑ¶ÁÈ¡"
+(
+for /f "usebackq" %%a in ("!_settings!") do (echo "%%a" 2>nul)
+)>>"!_logfile!"
 set "_ver=!_ver:"=!"
 set "_ver=!_ver:v=!"
 set "_ver=!_ver: =!"
@@ -180,15 +187,34 @@ if "!_outdate!"=="false" (
 	call :resetsettings
 )
 )
+call :logger DEBUG Bootcheck "ÅäÖÃÎÄ¼þ¼ì²é¸üÐÂ: !_outdate!"
 if "!_proxydetect!"=="true" (
 	for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD^|findstr /c:"ProxyEnable"') do (set "_proxy=%%a")
+	call :logger DEBUG Bootcheck "ÏµÍ³´úÀí¿ªÆô¼ì²â: !_proxy!"
 	if "!_proxy!"=="0x1" (
 		for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyServer') do (set "_proxyserver=%%a")
 		if "!_proxyserver:~0,9!"=="127.0.0.1" (set "_ifproxy=true")
 		)
-	sc query wintun|findstr /c:"STATE"|findstr /c:"RUNNING">nul&&set "_ifproxy=true"
-	if "!_ifproxy!"=="true" (call :ErrorWarn "ÄãËÆºõÕýÔÚÊ¹ÓÃ´úÀí·þÎñÆ÷-ÇåÀí´úÀí" BootCheck &pause>nul&exit)
+	sc query wintun|findstr /c:"STATE"|findstr /c:"RUNNING">nul&&set "_ifproxy=true"&&set "_wintun=true"
+	call :logger DEBUG Bootcheck "wintun·þÎñ¼ì²â: !_wintun!"
+	call :logger INFO Bootcheck "×îÖÕ´úÀí¼ì²â: !_ifproxy!"
+	if "!_ifproxy!"=="true" (call :ErrorWarn "ÄãËÆºõÕýÔÚÊ¹ÓÃ´úÀí·þÎñÆ÷-ÇåÀí´úÀí" BootCheck &&pause>nul&exit)
 )
+if NOT exist ".\warp.exe" (
+	powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/warp.exe" -OutFile "warp.exe"
+)
+if NOT exist ".\warp.exe" (
+	call :ErrorWarn "warp.exe²»´æÔÚ, ²¢ÇÒÏÂÔØÊ§°Ü-¼ì²éÍøÂçÁ¬½Ó" DownloadFailed &pause>nul&exit
+)
+for %%i in (v4 v6) do (
+    if NOT exist ".\ips-%%i.txt" (
+		powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt" -OutFile "ips-%%i.txt"
+	)
+    if NOT exist ".\ips-%%i.txt" (
+		call :ErrorWarn "È±ÉÙ IP%%i Êý¾Ý ips-%%i.txt-¼ì²éÍøÂçÁ¬½Ó" DownloadFailed &pause>nul&exit
+	)
+)
+call :logger DEBUG Bootcheck "ÒÑ¼ì²éÒÀÀµÎÄ¼þ"
 >"!_temp!\WCS-Pid.file" (
 echo._mepid=1
 echo._trpid=1
@@ -197,6 +223,7 @@ echo._trpid=1
 echo._mestatus=undefined
 echo._trstatus=undefined
 )
+call :logger DEBUG Bootcheck "ÒÑ³õÊ¼»¯PidºÍSignalÎÄ¼þ"
 goto :eof
 
 :resetsettings
@@ -223,6 +250,7 @@ goto :eof
 
 :WCS-daemon
 title WCS-Daemon-v0.3.0
+call :logger INFO WCS-daemon "ÒÑÈ·¶¨Æô¶¯WCS-daemon"
 :WCS-daemon-1
 cls
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
@@ -237,6 +265,7 @@ if NOT "!_trstatus!"=="exited" (
 timeout /t 1 /NOBREAK >nul
 goto :WCS-daemon-1
 :menu-exit
+call :logger INFO WCS-daemon "¼ì²âµ½MenuÍË³ö"
 for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 for %%a in (!_mepid! !_trpid!) do (taskkill /f /t /pid %%a >nul 2>nul)
 del /f /q "!_temp!\WCS-*.file"
@@ -244,57 +273,69 @@ warp-cli status|findstr /c:" Connecting">nul&&warp-cli disconnect
 netsh AdvFirewall Set AllProfiles State On
 exit
 :try-exit-signal
+call :logger INFO WCS-daemon "¼ì²âµ½Try½ø³ÌÍË³ö"
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 goto :eof
 
 
 :WCS-try
+call :logger INFO WCS-try "ÒÑÈ·¶¨Æô¶¯WCS-try"
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_trpid=%%a") & del /f "%%~ft"
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trpid (echo._trpid=%_trpid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
 move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
+call :logger DEBUG WCS-try "WCS-try Pid: !_trpid!"
 cls
 title WCS-Main-v0.2.0
 netsh AdvFirewall Set AllProfiles State Off
 warp-cli disconnect
 warp-cli mode !_warpmode!
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=renew) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+set "_trstatus=renew"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :logger DEBUG WCS-try "WCS-try Signal: !_trstatus!"
 :WCS-try-1
 if NOT !_num! GEQ 100 (call :build!_ipver!ip :WCS-try-1)
 call :ResetALL
 call :testip
+call :logger DEBUG WCS-try-1 "ÒÑµ÷ÓÃ:testip"
 if NOT exist ".\!_ipver!result.txt" (goto :WCS-try-1)
 set /p _endpoint=<.\!_ipver!result.txt
 warp-cli tunnel endpoint reset
 warp-cli tunnel endpoint set !_endpoint!
+call :logger INFO WCS-try-1 "ÒÑÉèÖÃEndpoint: !_endpoint!"
 warp-cli tunnel rotate-keys
+call :logger INFO WCS-try-1 "ÒÑÖØÖÃÃÜÔ¿"
 del /q ".\*result.txt" >nul 2>nul
 set "_fail=0"
 set "_loopnum=0"
 set "_pha3=0"
 warp-cli connect
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+set "_trstatus=running"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :logger DEBUG WCS-try-1 "WCS-try Signal: !_trstatus!"
 :WCS-try-2
 if /i !_fail! GEQ !_check! goto :WCS-try-3
 if /i !_loopnum! GEQ 80 goto :WCS-try-3
 if /i !_pha3! GEQ !_renewnum! (
 	mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-try",,"",0^)(window.close^)&&exit
 )
-warp-cli status|findstr /C:"happy eyeballs" &&set /a "_fail+=1"&&timeout /t 5 /NOBREAK >nul
-warp-cli status|findstr /C:" Connected" &&goto :WCS-try-4
+warp-cli status|findstr /C:"happy eyeballs" &&set /a "_fail+=1"&&call :logger DEBUG WCS-try-2 "¼ì²âµ½happy eyeballs"&&timeout /t 5 /NOBREAK >nul
+warp-cli status|findstr /C:" Connected" &&call :logger INFO WCS-try-2 "¼ì²âµ½WARPÁ¬½Ó³É¹¦"&&goto :WCS-try-4
 set /a "_loopnum+=1"
 timeout /t !_loop! /NOBREAK >nul
 goto :WCS-try-2
 :WCS-try-3
 if /i !_fail! GEQ !_check! (
+	call :logger DEBUG WCS-try-3 "ÒÑ´¥·¢happy eyeballsÊ§°Ü´ÎÊý"
 	warp-cli disconnect
 	warp-cli tunnel rotate-keys
 	set "_fail=0"
 )
 if /i !_loopnum! GEQ 80 (
+	call :logger DEBUG WCS-try-3 "ÒÑ´¥·¢µÈ´ý³¬Ê±"
 	warp-cli disconnect
 	set "_loopnum=0"
 )
@@ -313,6 +354,7 @@ if "!_notice!"=="true" (
 		set "_version=%%a"
 		if "!_netdesk!" leq "!_version!" set "_netdesk=!_version!"
 	)
+	call :logger DEBUG WCS-try-4 "_netcore: !_netcore! - _netdesk: !_netdesk!"
 	if NOT defined _netcore if NOT defined _netdesk exit
 	powershell -NoProfile -NonInteractive -Command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');$objNotify = New-Object System.Windows.Forms.NotifyIcon;$objNotify.Icon = [System.Drawing.SystemIcons]::Information;$objNotify.BalloonTipText = 'Á¬½Ó³É¹¦£¡½Å±¾ÒÑÍË³ö';$objNotify.BalloonTipTitle = 'WARP-Connect-Script';$objNotify.Visible = $true;$objNotify.ShowBalloonTip(8000)" >nul
 )
@@ -344,4 +386,15 @@ for %%# in (DomainProfile PublicProfile StandardProfile) do (
 	)
 )
 if "!_ena!"=="3" (set "_ena=[92m¿ªÆô[30m") else (set "_ena=[91m¹Ø±Õ[30m")
+goto :eof
+
+:logger
+if defined _log (
+	if NOT "!_log!"=="true" (
+		goto :eof
+	)
+)
+>>"!_logfile!" (
+	echo.[%time:~0,8%/%1]-%2 %3
+)
 goto :eof
