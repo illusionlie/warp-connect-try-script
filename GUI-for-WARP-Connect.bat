@@ -20,6 +20,7 @@ for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "n
 move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
 call :logger DEBUG Menu "Menu Pid: !_mepid!"
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mestatus (echo._mestatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+set "_mestatus=running"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 call :logger DEBUG Menu "Menu Signal: !_mestatus!"
 start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,,0)(window.close)
