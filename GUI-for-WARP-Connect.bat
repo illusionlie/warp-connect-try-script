@@ -276,7 +276,7 @@ exit
 :try-exit-signal
 call :logger INFO WCS-daemon "检测到Try进程退出"
 for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
-if NOT "!_trstatus!"=="exited" (
+if NOT "!_trstatus!"=="exit" (
 (for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=error) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 call :logger ERROR Try-exit-signal "Try进程异常退出"
@@ -363,8 +363,8 @@ if "!_notice!"=="true" (
 	if NOT defined _netcore if NOT defined _netdesk exit
 	powershell -NoProfile -NonInteractive -Command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');$objNotify = New-Object System.Windows.Forms.NotifyIcon;$objNotify.Icon = [System.Drawing.SystemIcons]::Information;$objNotify.BalloonTipText = '连接成功！脚本已退出';$objNotify.BalloonTipTitle = 'WARP-Connect-Script';$objNotify.Visible = $true;$objNotify.ShowBalloonTip(8000)" >nul
 )
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-set "_trstatus=exited"
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exit) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+set "_trstatus=exit"
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 call :logger DEBUG WCS-try-4 "WCS-try Signal: !_trstatus!"
 call :logger INFO WCS-try-4 "WCS-try已自行退出"
