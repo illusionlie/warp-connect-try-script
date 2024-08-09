@@ -281,6 +281,8 @@ if NOT "!_trstatus!"=="exit" (
 move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 call :logger ERROR Try-exit-signal "Try进程异常退出"
 )
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
+move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
 goto :eof
 
 
