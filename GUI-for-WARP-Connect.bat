@@ -16,13 +16,8 @@ fltmc>nul 2>nul||mshta vbscript:CreateObject("Shell.Application").ShellExecute("
 fltmc>nul 2>nul||(call :ErrorWarn "ÌáÈ¨Ê§°Ü, ÐèÒª¹ÜÀíÔ±È¨ÏÞ-ÐèÒªÌáÈ¨" BootCheck &pause>nul&exit)
 call :logger DEBUG Menu "ÒÑ³É¹¦ÌáÈ¨"
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_mepid=%%a") & del /f "%%~ft"
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mepid (echo._mepid=%_mepid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
-move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
-call :logger DEBUG Menu "Menu Pid: !_mepid!"
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_mestatus (echo._mestatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-set "_mestatus=running"
-move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
-call :logger DEBUG Menu "Menu Signal: !_mestatus!"
+call :filechange _mepid !_mepid! Pid Menu
+call :filechange _mestatus running Signal Menu
 start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,,0)(window.close)
 call :logger DEBUG Menu "ÒÑÆô¶¯WCS-try"
 timeout /t 1 /NOBREAK >nul
@@ -277,12 +272,10 @@ exit
 call :logger INFO WCS-daemon "¼ì²âµ½Try½ø³ÌÍË³ö"
 for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
 if NOT "!_trstatus!"=="exit" (
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=error) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :filechange _trstatus error Signal Try-exit-signal
 call :logger ERROR Try-exit-signal "Try½ø³ÌÒì³£ÍË³ö"
 )
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exited) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
+call :filechange _trstatus exited Signal Try-exit-signal
 goto :eof
 
 
@@ -290,18 +283,13 @@ goto :eof
 call :logger INFO WCS-try "ÒÑÈ·¶¨Æô¶¯WCS-try"
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_trpid=%%a") & del /f "%%~ft"
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Pid.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trpid (echo._trpid=%_trpid%) else echo.%%a)))> "!_temp!\WCS-Pid.file.tmp"
-move /y "!_temp!\WCS-Pid.file.tmp" "!_temp!\WCS-Pid.file" >nul 2>nul
-call :logger DEBUG WCS-try "WCS-try Pid: !_trpid!"
+call :filechange _trpid !_trpid! Pid WCS-try
 cls
 title WCS-Main-v0.2.0
 netsh AdvFirewall Set AllProfiles State Off
 warp-cli disconnect
 warp-cli mode !_warpmode!
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=renew) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-set "_trstatus=renew"
-move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
-call :logger DEBUG WCS-try "WCS-try Signal: !_trstatus!"
+call :filechange _trstatus renew Signal WCS-try
 :WCS-try-1
 if NOT !_num! GEQ 100 (call :build!_ipver!ip :WCS-try-1)
 call :ResetALL
@@ -319,10 +307,7 @@ set "_fail=0"
 set "_loopnum=0"
 set "_pha3=0"
 warp-cli connect
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=running) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-set "_trstatus=running"
-move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
-call :logger DEBUG WCS-try-1 "WCS-try Signal: !_trstatus!"
+call :filechange _trstatus running Signal WCS-try-1
 :WCS-try-2
 if /i !_fail! GEQ !_check! goto :WCS-try-3
 if /i !_loopnum! GEQ 80 goto :WCS-try-3
@@ -365,10 +350,7 @@ if "!_notice!"=="true" (
 	if NOT defined _netcore if NOT defined _netdesk exit
 	powershell -NoProfile -NonInteractive -Command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');$objNotify = New-Object System.Windows.Forms.NotifyIcon;$objNotify.Icon = [System.Drawing.SystemIcons]::Information;$objNotify.BalloonTipText = 'Á¬½Ó³É¹¦£¡½Å±¾ÒÑÍË³ö';$objNotify.BalloonTipTitle = 'WARP-Connect-Script';$objNotify.Visible = $true;$objNotify.ShowBalloonTip(8000)" >nul
 )
-(for /f "usebackq delims=" %%a in ("!_temp!\WCS-Signal.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==_trstatus (echo._trstatus=exit) else echo.%%a)))> "!_temp!\WCS-Signal.file.tmp"
-set "_trstatus=exit"
-move /y "!_temp!\WCS-Signal.file.tmp" "!_temp!\WCS-Signal.file" >nul 2>nul
-call :logger DEBUG WCS-try-4 "WCS-try Signal: !_trstatus!"
+call :filechange _trstatus exit Signal WCS-try-4
 call :logger INFO WCS-try-4 "WCS-tryÒÑ×ÔÐÐÍË³ö"
 exit
 
@@ -399,6 +381,15 @@ for %%# in (DomainProfile PublicProfile StandardProfile) do (
 )
 if "!_ena!"=="3" (set "_ena=[92m¿ªÆô[30m") else (set "_ena=[91m¹Ø±Õ[30m")
 goto :eof
+
+
+:filechange
+(for /f "usebackq delims=" %%a in ("!_temp!\WCS-%3.file") do (for /f "delims==" %%b in ("%%a") do (if %%b==%1 (echo.%1=%2) else echo.%%a)))> "!_temp!\WCS-%3.file.tmp"
+set "%1=%2"
+move /y "!_temp!\WCS-%3.file.tmp" "!_temp!\WCS-%3.file" >nul 2>nul
+call :logger DEBUG FileChange "%4 %3: %2"
+goto :eof
+
 
 :logger
 if defined _log (
