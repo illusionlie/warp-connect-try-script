@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v0.4.0-20240808
+:: GUI-for-WARP-Connect-Script v1.0.0-20240828
 :top
 endlocal
-set "warpcs-ver=v0.4.0"
-set "warpcs-date=20240808"
+set "warpcs-ver=v1.0.0"
+set "warpcs-date=20240828"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
@@ -142,11 +142,11 @@ call :logger INFO Bootcheck "ÅäÖÃÒÑ¶ÁÈ¡"
 (
 for /f "usebackq" %%a in ("!_settings!") do (echo "%%a" 2>nul)
 )>>"!_logfile!"
-set "_ver=!_ver:"=!"
-set "_ver=!_ver:v=!"
-set "_ver=!_ver: =!"
-echo.!_ver!|findstr /R "^[0-9\.]*$" >nul||call :resetsettings
-for /f "tokens=1-3 delims=." %%a in ("!_ver!") do (
+set "_profilever=!_profilever:"=!"
+set "_profilever=!_profilever:v=!"
+set "_profilever=!_profilever: =!"
+echo.!_profilever!|findstr /R "^[0-9\.]*$" >nul||call :resetsettings
+for /f "tokens=1-3 delims=." %%a in ("!_profilever!") do (
     set "_major=%%a"
     set "_minor=%%b"
     set "_patch=%%c"
@@ -184,6 +184,7 @@ if "!_outdate!"=="false" (
 )
 )
 call :logger DEBUG Bootcheck "ÅäÖÃÎÄ¼þ¼ì²é¸üÐÂ: !_outdate!"
+call :updater
 if "!_proxydetect!"=="true" (
 	for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD^|findstr /c:"ProxyEnable"') do (set "_proxy=%%a")
 	call :logger DEBUG Bootcheck "ÏµÍ³´úÀí¿ªÆô¼ì²â: !_proxy!"
@@ -228,7 +229,7 @@ echo.[[94mINFO[30m]-ResetSettings ¾ÉÅäÖÃÎÄ¼þÒÑ±»±¸·Ý
 move /y "!_settings!" "!_settings!.bak" >nul 2>nul 
 >"!_settings!" (
 echo.#WARP-Connect-Script-SettingsFile
-echo._ver=!warpcs-ver!
+echo._profilever=!warpcs-ver!
 echo._loop=1
 echo._check=10
 echo._ipver=v4
@@ -399,5 +400,50 @@ if defined _log (
 )
 >>"!_logfile!" (
 	echo.[%time:~0,8%/%1]-%2 %3
+)
+goto :eof
+
+
+:updater
+curl -V >nul||(call :ErrorWarn "curl²»´æÔÚ ÎÞ·¨Ö´ÐÐ-¼ì²écurl" Updater &pause>nul&goto :eof)
+for /f "tokens=2 delims=:," %%i in ('curl -L https://api.github.com/repos/illusionlie/warp-connect-try-script/releases/latest 2^>nul ^| findstr /R "^[ ]*\"tag_name\": *\"v[0-9]+\.[0-9]+\.[0-9]+\"$"') do (
+    set "_ver=%%~i"
+    goto :checkupdate
+)
+goto :eof
+:checkupdate
+if NOT defined _ver (call :ErrorWarn "Github API »ñÈ¡µ½µÄÖµÎª¿Õ-¼ì²éÍøÂçÁ¬½Ó" CheckUpdate &pause>nul&goto :eof)
+call :logger INFO CheckUpdate "Latest version: !_ver!"
+set "_ver=!_ver:"=!"
+set "_ver=!_ver:v=!"
+set "_ver=!_ver: =!"
+echo.!_ver!|findstr /R "^[0-9\.]*$" >nul||(call :ErrorWarn "´¦Àíºó°üº¬²»Ó¦¸Ã´æÔÚµÄ×Ö·û-¼ì²é½Å±¾ÉèÖÃ" CheckUpdate &pause>nul&goto :eof)
+for /f "tokens=1-3 delims=." %%a in ("!_ver!") do (
+    set "_major=%%a"
+    set "_minor=%%b"
+    set "_patch=%%c"
+)
+call :logger INFO CheckUpdate "Script version: !warpcs-ver!"
+set "_update=false"
+if !_major! GTR !_major-c! (
+    set "_update=true"
+) else if !_major! EQU !_major-c! (
+    if !_minor! GTR !_minor-c! (
+        set "_update=true"
+    ) else if !_minor! EQU !_minor-c! (
+        if !_patch! GTR !_patch-c! (
+            set "_update=true"
+        )
+    )
+)
+if !_major! EQU !_major-c! (
+	if !_minor! EQU !_minor-c! (
+		if !_patch! EQU !_patch-c! (
+			set "_update=same"
+		)
+	)
+)
+if "!_update!"=="true" (
+	for /f "delims=" %%a in ('mshta vbscript:Execute("On Error Resume Next:Dim ret,fso:ret=MsgBox(Replace(""¼ì²âµ½ÐÂ°æ±¾, ÊÇ·ñ½øÐÐ¸üÐÂ?\nµã»÷'ÊÇ'´ò¿ªÍøÕ¾½øÐÐ¸üÐÂ\nµã»÷'·ñ'¼ÌÐø"",""\n"",vbCrLf),vbExclamation + vbOkCancel,""CheckUpdate""):Set fso=CreateObject(""Scripting.FileSystemObject""):fso.GetStandardStream(1).Write ret:Set fso=Nothing:close"^)') do (if %%a equ 1 (start https://github.com/illusionlie/warp-connect-try-script/releases))
 )
 goto :eof
