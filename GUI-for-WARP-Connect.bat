@@ -184,7 +184,7 @@ if "!_outdate!"=="false" (
 )
 )
 call :logger DEBUG Bootcheck "配置文件检查更新: !_outdate!"
-call :updater
+if "!_updater!"=="true" call :updater
 if "!_proxydetect!"=="true" (
 	for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD^|findstr /c:"ProxyEnable"') do (set "_proxy=%%a")
 	call :logger DEBUG Bootcheck "系统代理开启检测: !_proxy!"
@@ -241,6 +241,7 @@ echo._proxydetect=true
 echo._nosleep=false
 ::notice is still in test
 echo._notice=true
+echo._updater=true
 )
 goto :eof
 
