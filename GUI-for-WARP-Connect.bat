@@ -198,14 +198,14 @@ if "!_proxydetect!"=="true" (
 	if "!_ifproxy!"=="true" (call :ErrorWarn "你似乎正在使用代理服务器-清理代理" BootCheck &&pause>nul&exit)
 )
 if NOT exist ".\warp.exe" (
-	powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/warp.exe" -OutFile "warp.exe"
+	powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/warp.exe' -OutFile 'warp.exe'"
 )
 if NOT exist ".\warp.exe" (
 	call :ErrorWarn "warp.exe不存在, 并且下载失败-检查网络连接" DownloadFailed &pause>nul&exit
 )
 for %%i in (v4 v6) do (
     if NOT exist ".\ips-%%i.txt" (
-		powershell wget -Uri "https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt" -OutFile "ips-%%i.txt"
+		powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
 	)
     if NOT exist ".\ips-%%i.txt" (
 		call :ErrorWarn "缺少 IP%%i 数据 ips-%%i.txt-检查网络连接" DownloadFailed &pause>nul&exit
@@ -232,14 +232,13 @@ echo.#WARP-Connect-Script-SettingsFile
 echo._profilever=!warpcs-ver!
 echo._loop=1
 echo._check=10
-echo._ipver=v4
+echo._ipver=v6
 echo._daemon=true
 echo._log=false
 echo._warpmode=warp
 echo._renewnum=3
 echo._proxydetect=true
 echo._nosleep=false
-::notice is still in test
 echo._notice=true
 echo._updater=true
 )
