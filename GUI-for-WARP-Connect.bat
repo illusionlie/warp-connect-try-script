@@ -185,10 +185,6 @@ if "!_outdate!"=="false" (
 )
 call :logger DEBUG Bootcheck "配置文件检查更新: !_outdate!"
 if "!_updater!"=="true" call :updater
-if "!_ipver!"=="v6" (
-	powershell -c "Get-NetIPAddress -AddressFamily IPv6 -PrefixOrigin RouterAdvertisement -SuffixOrigin Link|Select-Object -ExpandProperty IPAddress"|findstr /c:"ObjectNotFound">nul 2>nul&&set "_ipver=v4"
-	call :logger INFO Bootcheck "IPversion Fallback: !_ipver!"
-)
 if "!_proxydetect!"=="true" (
 	for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD^|findstr /c:"ProxyEnable"') do (set "_proxy=%%a")
 	call :logger DEBUG Bootcheck "系统代理开启检测: !_proxy!"
@@ -287,6 +283,10 @@ goto :eof
 :WCS-try
 call :logger INFO WCS-try "已确定启动WCS-try"
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
+if "!_ipver!"=="v6" (
+	powershell -c "Get-NetIPAddress -AddressFamily IPv6 -PrefixOrigin RouterAdvertisement -SuffixOrigin Link|Select-Object -ExpandProperty IPAddress"|findstr /c:"ObjectNotFound">nul 2>nul&&set "_ipver=v4"
+	call :logger INFO WCS-try "IPversion Fallback: !_ipver!"
+)
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_trpid=%%a") & del /f "%%~ft"
 call :filechange _trpid !_trpid! Pid WCS-try
 cls
