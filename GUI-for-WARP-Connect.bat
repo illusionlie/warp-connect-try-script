@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v1.0.0-20240828
+:: GUI-for-WARP-Connect-Script v1.1.0-20240928
 :top
 endlocal
-set "warpcs-ver=v1.0.0"
-set "warpcs-date=20240828"
+set "warpcs-ver=v1.1.0"
+set "warpcs-date=20240928"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
@@ -407,7 +407,7 @@ goto :eof
 
 :updater
 curl -V >nul||(call :ErrorWarn "curl不存在 无法执行-检查curl" Updater &pause>nul&goto :eof)
-for /f "tokens=2 delims=:," %%i in ('curl -L https://api.github.com/repos/illusionlie/warp-connect-try-script/releases/latest 2^>nul ^| findstr /R "^[ ]*\"tag_name\": *\"v[0-9]+\.[0-9]+\.[0-9]+\"$"') do (
+for /f "tokens=2 delims=:," %%i in ('curl -L --connect-timeout 10 https://api.github.com/repos/illusionlie/warp-connect-try-script/releases/latest 2^>nul ^| findstr /R "^[ ]*\"tag_name\": *\"v[0-9]+\.[0-9]+\.[0-9]+\"$"') do (
     set "_ver=%%~i"
     goto :checkupdate
 )
