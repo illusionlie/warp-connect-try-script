@@ -185,6 +185,10 @@ if "!_outdate!"=="false" (
 )
 call :logger DEBUG Bootcheck "配置文件检查更新: !_outdate!"
 if "!_updater!"=="true" call :updater
+if "!_ipver!"=="v6" (
+	powershell -c "Get-NetIPAddress -AddressFamily IPv6 -PrefixOrigin RouterAdvertisement -SuffixOrigin Link|Select-Object -ExpandProperty IPAddress"|findstr /c:"ObjectNotFound">nul 2>nul&&set "_ipver=v4"
+	call :logger INFO Bootcheck "IPversion Fallback: !_ipver!"
+)
 if "!_proxydetect!"=="true" (
 	for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD^|findstr /c:"ProxyEnable"') do (set "_proxy=%%a")
 	call :logger DEBUG Bootcheck "系统代理开启检测: !_proxy!"
