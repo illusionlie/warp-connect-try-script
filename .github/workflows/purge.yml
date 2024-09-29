@@ -1,0 +1,19 @@
+name: Purge CDN
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+
+jobs:
+  purge-cdn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: purge jsdelivr
+        run: |
+          sleep 5
+          curl https://purge.jsdelivr.net/gh/${{ github.repository }}@latest/
