@@ -172,9 +172,13 @@ if NOT exist ".\warp.exe" (
 	call :ErrorWarn "warp.exe不存在, 并且下载失败-检查网络连接" DownloadFailed &pause>nul&exit
 )
 for %%i in (v4 v6) do (
-    if NOT exist ".\ips-%%i.txt" (\/Interactive -Command "wget -Uri 'https://gitlab.com/Misaka-blo/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
-	  if NOT exist ".\ips-%%i.txt" (
-		call :ErrorWarn "缺少 IP%%i 数据 ips-%%i.txt-检查网络连接" DownloadFailed &pause>nul&exit
+	if exist ".\ips-%%i.txt" (
+		2>nul >nul findstr /B /X "#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||del /f /q "ips-%%i.txt" >nul 2>nul
+	)
+    if NOT exist ".\ips-%%i.txt" (powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gcore.jsdelivr.net/gh/illusionlie/warp-connect-try-script@latest/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
+		if NOT exist ".\ips-%%i.txt" (
+			call :ErrorWarn "缺少 IP%%i 数据 ips-%%i.txt-检查网络连接" DownloadFailed &pause>nul&exit
+	  	)
 	)
 )
 call :logger DEBUG Bootcheck "已检查依赖文件"
