@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v1.1.0-20240928
+:: GUI-for-WARP-Connect-Script v1.1.0-20240929
 :top
 endlocal
 set "warpcs-ver=v1.1.0"
-set "warpcs-date=20240928"
+set "warpcs-date=20240929"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
@@ -142,48 +142,16 @@ call :logger INFO Bootcheck "配置已读取"
 (
 for /f "usebackq" %%a in ("!_settings!") do (echo "%%a" 2>nul)
 )>>"!_logfile!"
-set "_profilever=!_profilever:"=!"
-set "_profilever=!_profilever:v=!"
-set "_profilever=!_profilever: =!"
-echo.!_profilever!|findstr /R "^[0-9\.]*$" >nul||call :resetsettings
-for /f "tokens=1-3 delims=." %%a in ("!_profilever!") do (
-    set "_major=%%a"
-    set "_minor=%%b"
-    set "_patch=%%c"
-)
-set "warpcs-ver=!warpcs-ver:v=!"
-for /f "tokens=1-3 delims=." %%a in ("!warpcs-ver!") do (
-    set "_major-c=%%a"
-    set "_minor-c=%%b"
-    set "_patch-c=%%c"
-)
-set "_outdate=false"
-if !_major! GTR !_major-c! (
-    set "_outdate=true"
-) else if !_major! EQU !_major-c! (
-    if !_minor! GTR !_minor-c! (
-        set "_outdate=true"
-    ) else if !_minor! EQU !_minor-c! (
-        if !_patch! GTR !_patch-c! (
-            set "_outdate=true"
-        )
-    )
-)
-if !_major! EQU !_major-c! (
-	if !_minor! EQU !_minor-c! (
-		if !_patch! EQU !_patch-c! (
-			set "_outdate=same"
-		)
-	)
-)
-if "!_outdate!"=="true" (
+call :checker "!_profilever!" "!warpcs-ver!"
+if "!_result!"=="false" (call :ErrorWarn "配置文件版本检查失败-脚本异常" BootCheck &pause>nul&exit)
+if "!_update!"=="true" (
 	call :resetsettings
 ) else (
-if "!_outdate!"=="false" (
+if "!_update!"=="false" (
 	call :resetsettings
 )
 )
-call :logger DEBUG Bootcheck "配置文件检查更新: !_outdate!"
+call :logger DEBUG Bootcheck "配置文件检查更新: !_update!"
 if "!_updater!"=="true" call :updater
 if "!_proxydetect!"=="true" (
 	for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD^|findstr /c:"ProxyEnable"') do (set "_proxy=%%a")
@@ -204,10 +172,8 @@ if NOT exist ".\warp.exe" (
 	call :ErrorWarn "warp.exe不存在, 并且下载失败-检查网络连接" DownloadFailed &pause>nul&exit
 )
 for %%i in (v4 v6) do (
-    if NOT exist ".\ips-%%i.txt" (
-		powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gitlab.com/Misaka-blog/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
-	)
-    if NOT exist ".\ips-%%i.txt" (
+    if NOT exist ".\ips-%%i.txt" (\/Interactive -Command "wget -Uri 'https://gitlab.com/Misaka-blo/warp-script/-/raw/main/files/warp-yxip/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
+	  if NOT exist ".\ips-%%i.txt" (
 		call :ErrorWarn "缺少 IP%%i 数据 ips-%%i.txt-检查网络连接" DownloadFailed &pause>nul&exit
 	)
 )
@@ -234,7 +200,7 @@ echo._loop=1
 echo._check=10
 echo._ipver=v6
 echo._daemon=true
-echo._log=false
+echo._log=true
 echo._warpmode=warp
 echo._renewnum=3
 echo._proxydetect=true
@@ -418,36 +384,55 @@ goto :eof
 :checkupdate
 if NOT defined _ver (call :ErrorWarn "Github API 获取到的值为空-检查网络连接" CheckUpdate &pause>nul&goto :eof)
 call :logger INFO CheckUpdate "Latest version: !_ver!"
-set "_ver=!_ver:"=!"
-set "_ver=!_ver:v=!"
-set "_ver=!_ver: =!"
-echo.!_ver!|findstr /R "^[0-9\.]*$" >nul||(call :ErrorWarn "处理后包含不应该存在的字符-检查脚本设置" CheckUpdate &pause>nul&goto :eof)
-for /f "tokens=1-3 delims=." %%a in ("!_ver!") do (
-    set "_major=%%a"
-    set "_minor=%%b"
-    set "_patch=%%c"
-)
 call :logger INFO CheckUpdate "Script version: !warpcs-ver!"
+call :checker "!_ver!" "!warpcs-ver!"
+if "!_result!"=="true" (
+	if "!_update!"=="true" (
+		for /f "delims=" %%a in ('mshta vbscript:Execute("On Error Resume Next:Dim ret,fso:ret=MsgBox(Replace(""检测到新版本, 是否进行更新?\n点击'是'打开网站进行更新\n点击'否'继续"",""\n"",vbCrLf),vbExclamation + vbOkCancel,""CheckUpdate""):Set fso=CreateObject(""Scripting.FileSystemObject""):fso.GetStandardStream(1).Write ret:Set fso=Nothing:close"^)') do (if %%a equ 1 (start https://github.com/illusionlie/warp-connect-try-script/releases))
+	)
+)
+goto :eof
+
+
+:checker
+set "_ver1=%~1"
+set "_ver2=%~2"
+set "_result=false"
+if "!_ver1!"=="" (if "!_ver2!"=="" (goto :eof))
+for %%a in (1 2) do (
+	set "_major%%a="
+	set "_minor%%a="
+	set "_patch%%a="
+)
+for %%a in (1 2) do (
+	set "_ver%%a=!_ver%%a: =!"
+	set "_ver%%a=!_ver%%a:v=!"
+	set "_ver%%a=!_ver%%a:"=!"
+	echo.!_ver%%a!|findstr /R "^[0-9\.]*$" >nul||(call :ErrorWarn "处理后包含不应该存在的字符-传入的参数错误" Checker &pause>nul&goto :eof)
+	for /f "tokens=1-3 delims=." %%x in ("!_ver%%a!") do (
+    set "_major%%a=%%x"
+    set "_minor%%a=%%y"
+    set "_patch%%a=%%z"
+)
+)
 set "_update=false"
-if !_major! GTR !_major-c! (
+if !_major1! GTR !_major2! (
     set "_update=true"
-) else if !_major! EQU !_major-c! (
-    if !_minor! GTR !_minor-c! (
+) else if !_major1! EQU !_major2! (
+    if !_minor1! GTR !_minor2! (
         set "_update=true"
-    ) else if !_minor! EQU !_minor-c! (
-        if !_patch! GTR !_patch-c! (
+    ) else if !_minor1! EQU !_minor2! (
+        if !_patch1! GTR !_patch2! (
             set "_update=true"
         )
     )
 )
-if !_major! EQU !_major-c! (
-	if !_minor! EQU !_minor-c! (
-		if !_patch! EQU !_patch-c! (
+if !_major1! EQU !_major2! (
+	if !_minor1! EQU !_minor2! (
+		if !_patch1! EQU !_patch2! (
 			set "_update=same"
 		)
 	)
 )
-if "!_update!"=="true" (
-	for /f "delims=" %%a in ('mshta vbscript:Execute("On Error Resume Next:Dim ret,fso:ret=MsgBox(Replace(""检测到新版本, 是否进行更新?\n点击'是'打开网站进行更新\n点击'否'继续"",""\n"",vbCrLf),vbExclamation + vbOkCancel,""CheckUpdate""):Set fso=CreateObject(""Scripting.FileSystemObject""):fso.GetStandardStream(1).Write ret:Set fso=Nothing:close"^)') do (if %%a equ 1 (start https://github.com/illusionlie/warp-connect-try-script/releases))
-)
+set "_result=true"
 goto :eof
