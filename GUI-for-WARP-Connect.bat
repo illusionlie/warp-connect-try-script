@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v1.1.0-20240929
+:: GUI-for-WARP-Connect-Script v1.1.1-20241001
 :top
 endlocal
-set "warpcs-ver=v1.1.0"
-set "warpcs-date=20240929"
+set "warpcs-ver=v1.1.1"
+set "warpcs-date=20241001"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
@@ -12,9 +12,6 @@ if "%~1"=="WCS-daemon" (goto :WCS-daemon)
 if "%~1"=="WCS-try" (goto :WCS-try)
 call :ResetALL
 call :bootcheck
-fltmc>nul 2>nul||mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0",,,"runas",1)(window.close)&&exit
-fltmc>nul 2>nul||(call :ErrorWarn "提权失败, 需要管理员权限-需要提权" BootCheck &pause>nul&exit)
-call :logger DEBUG Menu "已成功提权"
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_mepid=%%a") & del /f "%%~ft"
 call :filechange _mepid !_mepid! Pid Menu
 call :filechange _mestatus running Signal Menu
@@ -128,6 +125,9 @@ echo.脚本运行路径: %~dp0
 )>"!_logfile!"
 echo.!cd!|findstr /I "%% ^! ^^ ^| ^& ^' ^) ^("&&(call :ErrorWarn "文件夹路径包含非法字符-修改路径" BootCheck &pause>nul&exit)
 call :logger DEBUG Bootcheck "已通过文件夹路径测试"
+fltmc>nul 2>nul||mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~dpnx0",,,"runas",1)(window.close)&&exit
+fltmc>nul 2>nul||(call :ErrorWarn "自动提权失败, 需要管理员权限-需要提权" BootCheck &pause>nul&exit)
+call :logger DEBUG BootCheck "已成功提权"
 for /f "tokens=2 delims==" %%i in ('wmic os get version /value') do (set "_winver=%%i")
 if !_winver! LSS 10.0 (call :ErrorWarn "你的Windows系统版本低于Win10-升级Windows版本" BootCheck &pause>nul&exit)
 call :logger DEBUG Bootcheck "已通过系统版本测试"
