@@ -189,6 +189,7 @@ echo._trpid=1
 >"!_temp!\WCS-Signal.file" (
 echo._mestatus=undefined
 echo._trstatus=undefined
+echo._fwstatus=undefined
 )
 call :logger DEBUG Bootcheck "已初始化Pid和Signal文件"
 goto :eof
@@ -237,7 +238,7 @@ for /f "usebackq" %%a in ("!_temp!\WCS-Pid.file") do (set "%%a")
 for %%a in (!_mepid! !_trpid!) do (taskkill /f /t /pid %%a >nul 2>nul)
 del /f /q "!_temp!\WCS-*.file"
 warp-cli status|findstr /c:" Connecting">nul&&warp-cli disconnect
-netsh AdvFirewall Set AllProfiles State On
+if "!_fwstatus!"=="on" netsh AdvFirewall Set AllProfiles State On
 exit
 :try-exit-signal
 call :logger INFO WCS-daemon "检测到Try进程退出"
@@ -261,6 +262,16 @@ for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "n
 call :filechange _trpid !_trpid! Pid WCS-try
 cls
 title WCS-Main-v0.2.0
+for %%# in (DomainProfile PublicProfile StandardProfile) do (
+	for /f "skip=2 tokens=2*" %%a in ('reg query HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\%%# /v EnableFirewall 2^>nul') do (
+		if /i %%b equ 0x1 (set /a _ena+=1)
+	)
+)
+if "!_ena!"=="3" (
+	call :filechange _fwstatus on Signal Firewall
+) else (
+	call :filechange _fwstatus off Signal Firewall
+)
 netsh AdvFirewall Set AllProfiles State Off
 warp-cli disconnect
 warp-cli mode !_warpmode!
