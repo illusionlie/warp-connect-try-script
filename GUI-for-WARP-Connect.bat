@@ -17,7 +17,7 @@ call :filechange _mepid !_mepid! Pid Menu
 call :filechange _mestatus running Signal Menu
 start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,,0)(window.close)
 call :logger DEBUG Menu "已启动WCS-try"
-timeout /t 1 /NOBREAK >nul
+timeout /t 3 /NOBREAK >nul
 if "!_daemon!"=="true" (
 	mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-daemon",,,0^)(window.close^)
 	call :logger DEBUG Menu "已启动WCS-daemon"
