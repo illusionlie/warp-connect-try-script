@@ -135,7 +135,7 @@ warp-cli -V 2>nul >nul||(call :ErrorWarn "Î´ÕÒµ½warp-cli»òÎÞ·¨ÔËÐÐ-¼ì²éwarp°²×°Ä
 call :logger DEBUG Bootcheck "ÒÑÍ¨¹ýwarp-cli´æÔÚ²âÊÔ"
 warp-cli settings list|findstr /C:"(user set)"|findstr "Organization">nul 2>nul&&(call :ErrorWarn "ÄãÕýÔÚÊ¹ÓÃZero Trust-ÍË³öZero Trust" BootCheck &pause>nul&exit)
 call :logger DEBUG Bootcheck "ÒÑÍ¨¹ýZero Trust²âÊÔ"
-2>nul >nul findstr /B /X "#WARP-Connect-Script-SettingsFile" "!_settings!"||call :resetsettings
+2>nul >nul findstr /B /X /c:"#WARP-Connect-Script-SettingsFile" "!_settings!"||call :resetsettings
 call :logger DEBUG Bootcheck "ÅäÖÃÎÄ¼þÍ·Õý³£"
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
 call :logger INFO Bootcheck "ÅäÖÃÒÑ¶ÁÈ¡"
@@ -173,7 +173,7 @@ if NOT exist ".\warp.exe" (
 )
 for %%i in (v4 v6) do (
 	if exist ".\ips-%%i.txt" (
-		2>nul >nul findstr /B /X "#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||del /f /q "ips-%%i.txt" >nul 2>nul
+		2>nul >nul findstr /B /c:"#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||call :logger WARN BootCheck "IPsÊý¾ÝÒÑ¹ýÆÚ-½«ÖØÐÂÏÂÔØ" & (del /f /q "ips-%%i.txt" >nul 2>nul)
 	)
     if NOT exist ".\ips-%%i.txt" (powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gcore.jsdelivr.net/gh/illusionlie/warp-connect-try-script@latest/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
 		if NOT exist ".\ips-%%i.txt" (
