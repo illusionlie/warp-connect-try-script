@@ -173,7 +173,7 @@ if NOT exist ".\warp.exe" (
 )
 for %%i in (v4 v6) do (
 	if exist ".\ips-%%i.txt" (
-		2>nul >nul findstr /B /c:"#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||call :logger WARN BootCheck "IPs数据已过期-将重新下载" & (del /f /q "ips-%%i.txt" >nul 2>nul)
+		2>nul >nul findstr /B /c:"#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||(call :logger WARN BootCheck "IPs数据已过期-将重新下载" & del /f /q "ips-%%i.txt" >nul 2>nul)
 	)
     if NOT exist ".\ips-%%i.txt" (powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gcore.jsdelivr.net/gh/illusionlie/warp-connect-try-script@latest/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
 		if NOT exist ".\ips-%%i.txt" (
