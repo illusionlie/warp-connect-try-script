@@ -203,7 +203,7 @@ echo.#WARP-Connect-Script-SettingsFile
 echo._profilever=!warpcs-ver!
 echo._loop=1
 echo._check=10
-echo._ipver=v6
+echo._ipver=v4
 echo._daemon=true
 echo._log=true
 echo._warpmode=warp
