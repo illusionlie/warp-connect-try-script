@@ -228,7 +228,7 @@ goto :eof
 
 
 :WCS-daemon
-title WCS-Daemon-v0.3.0
+title WCS-Daemon
 call :logger INFO WCS-daemon "已确定启动WCS-daemon"
 :WCS-daemon-1
 cls
@@ -273,7 +273,7 @@ if "!_ipver!"=="v6" (
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_trpid=%%a") & del /f "%%~ft"
 call :filechange _trpid !_trpid! Pid WCS-try
 cls
-title WCS-Main-v0.2.0
+title WCS-Main
 for %%# in (DomainProfile PublicProfile StandardProfile) do (
 	for /f "skip=2 tokens=2*" %%a in ('reg query HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\%%# /v EnableFirewall 2^>nul') do (
 		if /i %%b equ 0x1 (set /a _ena+=1)
