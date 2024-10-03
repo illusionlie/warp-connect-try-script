@@ -285,6 +285,7 @@ if "!_ena!"=="3" (
 	call :filechange _fwstatus off Signal Firewall
 )
 netsh AdvFirewall Set AllProfiles State Off
+ipconfig /flushdns >nul 2>nul
 warp-cli disconnect
 warp-cli mode !_warpmode!
 call :filechange _trstatus renew Signal WCS-try
