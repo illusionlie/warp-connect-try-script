@@ -1,7 +1,7 @@
-:: GUI-for-WARP-Connect-Script v1.1.2-20241003
+:: GUI-for-WARP-Connect-Script v1.2.0-20241003
 :top
 endlocal
-set "warpcs-ver=v1.1.2"
+set "warpcs-ver=v1.2.0"
 set "warpcs-date=20241003"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
@@ -184,7 +184,15 @@ if NOT exist ".\warp.exe" (
 )
 for %%i in (v4 v6) do (
 	if exist ".\ips-%%i.txt" (
-		2>nul >nul findstr /B /c:"#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||(call :logger WARN BootCheck "IPs数据已过期-将重新下载" & del /f /q "ips-%%i.txt" >nul 2>nul)
+		2>nul >nul findstr /B /c:"#WARP-Connect-Script-IPsFile" ".\ips-%%i.txt"||(call :logger WARN BootCheck "IPs-%%i数据已过期-将重新下载" & del /f /q "ips-%%i.txt" >nul 2>nul)
+		set "_ipsver-c="
+		for /f "tokens=1,2 delims==" %%m in (.\ips-%%i.txt) do (
+    		if "%%m"=="#Update" (set "_ipsver-c=%%n")
+		)
+		if /i !_ipsver! GTR !_ipsver-c! (
+			call :logger INFO BootCheck "IPs-%%i数据已过期-将重新下载"
+			del /f /q "ips-%%i.txt" >nul 2>nul
+		)
 	)
     if NOT exist ".\ips-%%i.txt" (powershell -NoProfile -NonInteractive -Command "wget -Uri 'https://gcore.jsdelivr.net/gh/illusionlie/warp-connect-try-script@latest/ips-%%i.txt' -OutFile 'ips-%%i.txt'"
 		if NOT exist ".\ips-%%i.txt" (
@@ -223,6 +231,7 @@ echo._proxydetect=true
 echo._nosleep=false
 echo._notice=true
 echo._updater=true
+echo._ipsver=20241003
 )
 goto :eof
 
