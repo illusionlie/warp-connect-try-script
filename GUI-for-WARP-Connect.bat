@@ -28,7 +28,10 @@ cls
 call :maincheck
 echo.################################################################################
 echo.#                                                                              #
-echo.#                !warpcs-title!                #
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#               !warpcs-title!                 #
+echo.#                                                                              #
 echo.#                                                                              #
 echo.#                                                                              #
 echo.#                                                                              #
@@ -38,7 +41,15 @@ echo.#                                                                          
 echo.#      ·À»ðÇ½µ±Ç°×´Ì¬: !_ena!                                                    #
 echo.#                                                                              #
 echo.#                                                                              #
-echo.################################################################################
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#                                                                              #
+echo.#                                                                              #
+set /p=################################################################################<nul
 timeout /t 2 /NOBREAK >nul
 goto :main
 
