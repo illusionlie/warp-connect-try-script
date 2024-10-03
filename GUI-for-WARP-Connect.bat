@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v1.1.1-20241001
+:: GUI-for-WARP-Connect-Script v1.1.2-20241003
 :top
 endlocal
-set "warpcs-ver=v1.1.1"
-set "warpcs-date=20241001"
+set "warpcs-ver=v1.1.2"
+set "warpcs-date=20241003"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
