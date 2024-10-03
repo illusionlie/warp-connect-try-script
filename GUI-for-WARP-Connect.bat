@@ -54,7 +54,7 @@ timeout /t 2 /NOBREAK >nul
 goto :main
 
 :buildv4ip
-for /f "delims=" %%i in (.\ips-v4.txt) do (
+for /f "delims=" %%i in ('findstr /v "#" .\ips-v4.txt') do (
 	set "!random!_%%i=randomsort"
 )
 for /f "tokens=2,3,4 delims=_.=" %%i in ('set ^| findstr =randomsort ^| sort /m 10240') do (
@@ -65,7 +65,7 @@ if !_num! GEQ 100 (goto %~1) else (goto :buildv4ip)
 exit
 
 :buildv6ip
-for /f "delims=" %%i in (.\ips-v6.txt) do (
+for /f "delims=" %%i in ('findstr /v "#" .\ips-v6.txt') do (
 	set "!random!_%%i=randomsort"
 )
 set "_str=0123456789abcdef"
