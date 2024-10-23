@@ -231,6 +231,8 @@ echo._log=true
 echo.#是否启动日志记录
 echo._warpmode=warp
 echo.#要使用的WARP 模式, 默认为warp, 使用`warp-cli mode --help`查看可用的值
+echo._protocol=MASQUE
+echo.#要使用的WARP 协议, 默认为MASQUE, 使用`warp-cli tunnel protocol set --help`查看可用的值
 echo._renewnum=3
 echo.#触发重新获取端点的次数
 echo._proxydetect=true
@@ -306,6 +308,31 @@ netsh AdvFirewall Set AllProfiles State Off
 ipconfig /flushdns >nul 2>nul
 warp-cli disconnect
 warp-cli mode !_warpmode!
+if "!_protocol!"=="MASQUE" (
+	for /f "tokens=2 delims= " %%a in ('warp-cli -V') do set "_cliver=%%a"
+	for /f "tokens=1-4 delims=." %%a in ("!_cliver!") do (
+		set "_cliver_1=%%a"
+		set "_cliver_2=%%b"
+		set "_cliver_3=%%c"
+		set "_cliver_4=%%d"
+	)
+	if !_cliver_1! LSS 2024 (
+		set "_protocol=WireGuard"
+	) else if !_cliver_1! EQU 2024 (
+		if !_cliver_2! LSS 9 (
+			set "_protocol=WireGuard"
+		) else if !_cliver_2! EQU 9 (
+			if !_cliver_3! LSS 346 (
+				set "_protocol=WireGuard"
+			) else if !_cliver_3! EQU 346 (
+				if !_cliver_4! LSS 0 (
+					set "_protocol=WireGuard"
+				)
+			)
+		)
+	)
+)
+warp-cli tunnel protocol set !_protocol!
 call :filechange _trstatus renew Signal WCS-try
 :WCS-try-1
 if NOT !_num! GEQ 100 (call :build!_ipver!ip :WCS-try-1)
