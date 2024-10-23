@@ -1,8 +1,8 @@
-:: GUI-for-WARP-Connect-Script v1.1.3-20241007
+:: GUI-for-WARP-Connect-Script v1.2.0-20241023
 :top
 endlocal
-set "warpcs-ver=v1.1.3"
-set "warpcs-date=20241007"
+set "warpcs-ver=v1.2.0"
+set "warpcs-date=20241023"
 set "warpcs-title= -GUI-for-WARP-Connect-Script- %warpcs-ver%-%warpcs-date%"
 @echo off&title %warpcs-title%&cd /D "%~dp0"&color 70&setlocal enabledelayedexpansion&cls&chcp 936&mode con cols=80 lines=24
 set "_temp=%cd%\#TempforScript"
@@ -220,18 +220,31 @@ move /y "!_settings!" "!_settings!.bak" >nul 2>nul
 >"!_settings!" (
 echo.#WARP-Connect-Script-SettingsFile
 echo._profilever=!warpcs-ver!
-echo._loop=1
-echo._check=10
-echo._ipver=v6
-echo._daemon=true
-echo._log=true
-echo._warpmode=warp
-echo._renewnum=3
-echo._proxydetect=true
-echo._nosleep=false
-echo._notice=true
-echo._updater=true
+echo.#此为脚本配置文件版本号, 请勿修改
 echo._ipsver=20241003
+echo.#IPs日期, 请勿修改
+echo._loop=1
+echo.#循环一次的时间, 单位为秒
+echo._check=10
+echo.#触发连接失败的次数
+echo._ipver=v6
+echo.#要使用的IP 版本, v4 或 v6
+echo._daemon=true
+echo.#是否启动启动守护进程
+echo._log=true
+echo.#是否启动日志记录
+echo._warpmode=warp
+echo.#要使用的WARP 模式, 默认为warp, 使用`warp-cli mode --help`查看可用的值
+echo._renewnum=3
+echo.#触发重新获取端点的次数
+echo._proxydetect=true
+echo.#是否检测代理已开启^(避免连接问题^)
+echo._nosleep=false
+echo.#是否在脚本运行时阻止系统睡眠
+echo._notice=true
+echo.#是否在脚本退出时显示气球通知
+echo._updater=true
+echo.#是否启动自动检查更新
 )
 goto :eof
 
