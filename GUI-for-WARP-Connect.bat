@@ -373,7 +373,7 @@ exit
 
 
 :maincheck
-warp-cli status|findstr /c:" Disconnected.">nul&&set "_warpstatus=[91m∂œø™¡¨Ω”[30m"
+warp-cli status|findstr /c:" Disconnected">nul&&set "_warpstatus=[91m∂œø™¡¨Ω”[30m"
 warp-cli status|findstr /c:" Connecting">nul&&set "_warpstatus=[94m’˝‘⁄¡¨Ω”[30m"
 warp-cli status|findstr /c:" Connected">nul&&set "_warpstatus=[92m“—æ≠¡¨Ω”[30m"
 for /f "usebackq" %%a in ("!_temp!\WCS-Signal.file") do (set "%%a")
