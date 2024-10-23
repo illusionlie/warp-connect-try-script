@@ -18,10 +18,8 @@ call :filechange _mestatus running Signal Menu
 start mshta vbscript:CreateObject("Shell.Application").ShellExecute("%~f0","WCS-try",,,0)(window.close)
 call :logger DEBUG Menu "已启动WCS-try"
 timeout /t 3 /NOBREAK >nul
-if "!_daemon!"=="true" (
-	mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-daemon",,,0^)(window.close^)
-	call :logger DEBUG Menu "已启动WCS-daemon"
-)
+mshta vbscript:CreateObject("Shell.Application"^).ShellExecute("%~f0","WCS-daemon",,,0^)(window.close^)
+call :logger DEBUG Menu "已启动WCS-daemon"
 set /p=<nul
 :main
 cls
@@ -229,8 +227,6 @@ echo._check=10
 echo.#触发连接失败的次数
 echo._ipver=v6
 echo.#要使用的IP 版本, v4 或 v6
-echo._daemon=true
-echo.#是否启动启动守护进程
 echo._log=true
 echo.#是否启动日志记录
 echo._warpmode=warp
