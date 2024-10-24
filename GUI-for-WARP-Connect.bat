@@ -287,7 +287,7 @@ call :logger INFO WCS-try "已确定启动WCS-try"
 for /f "usebackq" %%a in ("!_settings!") do (set "%%a" 2>nul)
 if "!_ipver!"=="v6" (
 	netsh interface ipv6 show interface||set "_ipver=v4"
-	ping -6 2606:4700:4700::1111 -n 1 >nul 2>nul||set "_ipver=v4"
+	ping -6 2001:4860:4860::8888 -n 1 >nul 2>nul||set "_ipver=v4"
 	call :logger INFO WCS-try "IPversion Fallback: !_ipver!"
 )
 for %%t in ("%~dp0%~nx0.%~nx0.%random%.tmp") do > "%%~ft" (wmic process where "name='wmic.exe' and commandline like '%%_%~nx0_%%'" get parentprocessid /value & for /f "tokens=2 delims==" %%a in ('type "%%~ft"') do set "_trpid=%%a") & del /f "%%~ft"
