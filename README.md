@@ -1,3 +1,8 @@
+> 此脚本原本是我在 WARP 还能正常用的时候写的  
+> 在当时关闭防火墙、轮换密钥等操作还能玄学般的工作  
+> 现在 WARP 几乎已经无法使用，故此脚本再无作用  
+> --- 2026/07/02
+
 # WARP Connect Try Script
 这是一个用于尝试在国内通常网络环境下连接到WARP的Windows批处理脚本  
 使用比较 **~~玄学的方法~~** ,其中测试端点的代码来自我的 [这个脚本](https://github.com/illusionlie/warp-ip-auto-preference-script)
